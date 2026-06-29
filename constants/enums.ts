@@ -101,3 +101,10 @@ export const PostTypeLabels: Record<PostType, string> = {
   [PostType.COVER_LETTER]: "자소서",
   [PostType.PORTFOLIO]: "포트폴리오",
 };
+
+// 카테고리별 색상 (둘러보기에서 한눈에 구분)
+export const PostTypeColors: Record<PostType, string> = {
+  [PostType.RESUME]: "#6c8cff", // 인디고
+  [PostType.COVER_LETTER]: "#3ddc97", // 에메랄드
+  [PostType.PORTFOLIO]: "#f5a623", // 앰버
+};

@@ -34,3 +34,27 @@ export async function getPostsByAuthor(authorId: string) {
     orderBy: { createdAt: "desc" },
   });
 }
+
+/** 자료를 1개 이상 올린 학생 목록 + 각자 올린 카테고리(슬롯) */
+export async function listStudents(q?: string) {
+  return prisma.user.findMany({
+    where: {
+      posts: { some: {} },
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q } },
+              { studentNo: { contains: q } },
+            ],
+          }
+        : {}),
+    },
+    select: {
+      id: true,
+      name: true,
+      studentNo: true,
+      posts: { select: { id: true, type: true } },
+    },
+    orderBy: { name: "asc" },
+  });
+}
