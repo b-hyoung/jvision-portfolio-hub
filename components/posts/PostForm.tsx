@@ -6,18 +6,18 @@ import { PostType, PostTypeLabels } from "@/constants/enums";
 
 type Initial = {
   id?: string;
-  type?: string;
+  type: string; // 카테고리는 슬롯에서 고정 (이력서/자소서/포트폴리오)
   description?: string | null;
   linkUrl?: string | null;
   fileName?: string | null;
 };
 
-export default function PostForm({ initial }: { initial?: Initial }) {
+export default function PostForm({ initial }: { initial: Initial }) {
   const router = useRouter();
-  const editing = Boolean(initial?.id);
-  const [type, setType] = useState<string>(initial?.type ?? PostType.RESUME);
-  const [description, setDescription] = useState(initial?.description ?? "");
-  const [linkUrl, setLinkUrl] = useState(initial?.linkUrl ?? "");
+  const editing = Boolean(initial.id);
+  const type = initial.type;
+  const [description, setDescription] = useState(initial.description ?? "");
+  const [linkUrl, setLinkUrl] = useState(initial.linkUrl ?? "");
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -33,7 +33,7 @@ export default function PostForm({ initial }: { initial?: Initial }) {
     fd.set("linkUrl", linkUrl ?? "");
     if (file) fd.set("file", file);
 
-    const url = editing ? `/api/posts/${initial!.id}` : "/api/posts";
+    const url = editing ? `/api/posts/${initial.id}` : "/api/posts";
     const res = await fetch(url, { method: editing ? "PATCH" : "POST", body: fd });
     setLoading(false);
 
@@ -43,29 +43,16 @@ export default function PostForm({ initial }: { initial?: Initial }) {
       return;
     }
     const data = await res.json().catch(() => ({}));
-    router.push(editing ? `/posts/${initial!.id}` : `/posts/${data.id}`);
+    router.push(editing ? `/posts/${initial.id}` : `/posts/${data.id}`);
     router.refresh();
   }
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <div className="flex gap-2">
-        {Object.values(PostType).map((t) => (
-          <button
-            type="button"
-            key={t}
-            onClick={() => !editing && setType(t)}
-            disabled={editing}
-            className={`rounded-full px-4 py-1.5 text-sm transition ${
-              type === t ? "bg-indigo-600" : "bg-gray-800 text-gray-300"
-            } ${editing ? "cursor-default opacity-100" : ""} ${
-              editing && type !== t ? "hidden" : ""
-            }`}
-          >
-            {PostTypeLabels[t]}
-          </button>
-        ))}
-      </div>
+      {/* 카테고리는 고정 (이 슬롯 전용 업로드) */}
+      <span className="w-fit rounded-full bg-indigo-600 px-4 py-1.5 text-sm font-semibold">
+        {PostTypeLabels[type as PostType] ?? type}
+      </span>
 
       <input
         value={description ?? ""}
