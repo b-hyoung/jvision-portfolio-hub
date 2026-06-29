@@ -2,9 +2,21 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSessionUser } from "@/server/profile";
 import { listPosts } from "@/server/posts";
-import { PostType } from "@/constants/enums";
+import { PostType, PostTypeLabels } from "@/constants/enums";
 import PostCard from "@/components/posts/PostCard";
 import TypeTabs from "@/components/posts/TypeTabs";
+
+type ListedPost = Awaited<ReturnType<typeof listPosts>>[number];
+
+function PostGrid({ posts }: { posts: ListedPost[] }) {
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {posts.map((p) => (
+        <PostCard key={p.id} post={p} />
+      ))}
+    </div>
+  );
+}
 
 export default async function HomePage({
   searchParams,
@@ -46,11 +58,28 @@ export default async function HomePage({
 
       {posts.length === 0 ? (
         <p className="py-20 text-center text-gray-500">아직 게시물이 없습니다.</p>
+      ) : type ? (
+        // 특정 카테고리 탭: 해당 카테고리만
+        <PostGrid posts={posts} />
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {posts.map((p) => (
-            <PostCard key={p.id} post={p} />
-          ))}
+        // 전체 보기: 카테고리별 섹션으로 나눠서 표시
+        <div className="flex flex-col gap-8">
+          {Object.values(PostType).map((t) => {
+            const group = posts.filter((p) => p.type === t);
+            return (
+              <section key={t} className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-bold">{PostTypeLabels[t]}</h2>
+                  <span className="text-sm text-gray-500">{group.length}</span>
+                </div>
+                {group.length === 0 ? (
+                  <p className="text-sm text-gray-600">아직 없습니다.</p>
+                ) : (
+                  <PostGrid posts={group} />
+                )}
+              </section>
+            );
+          })}
         </div>
       )}
     </main>
