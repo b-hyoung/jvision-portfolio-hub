@@ -23,6 +23,8 @@
 # misc
 .DS_Store
 *.pem
+# 공개 CA 중간 인증서는 런타임에 필요하므로 커밋에 포함 (비밀키 아님)
+!certs/*.pem
 
 # debug
 npm-debug.log*
