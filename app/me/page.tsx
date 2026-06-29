@@ -2,8 +2,8 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getSessionUser } from "@/server/profile";
 import { getPostsByAuthor } from "@/server/posts";
-import { PostType, PostTypeLabels } from "@/constants/enums";
-import DeleteButton from "@/components/posts/DeleteButton";
+import { PostType } from "@/constants/enums";
+import SlotUploader, { type SlotPost } from "@/components/posts/SlotUploader";
 
 export default async function MePage() {
   const user = await getSessionUser();
@@ -32,50 +32,14 @@ export default async function MePage() {
           <h2 className="text-lg font-bold">내 자료</h2>
           <span className="text-sm text-gray-400">{filled} / 3 완료</span>
         </div>
+        <p className="text-sm text-gray-500">이력서·자소서·포트폴리오를 각각 올려주세요.</p>
 
         {slots.map((type) => {
-          const post = byType.get(type);
-          return (
-            <div
-              key={type}
-              className="flex items-center justify-between rounded-xl bg-gray-900 p-4 ring-1 ring-gray-800"
-            >
-              <div className="flex items-center gap-3">
-                <span className="rounded-full bg-indigo-600/20 px-2.5 py-0.5 text-xs text-indigo-300">
-                  {PostTypeLabels[type]}
-                </span>
-                {post ? (
-                  <span className="text-sm text-gray-400">
-                    {post.fileName ? `📎 ${post.fileName}` : ""}
-                    {post.linkUrl ? " 🔗 링크" : ""}
-                  </span>
-                ) : (
-                  <span className="text-sm text-gray-600">아직 올리지 않음</span>
-                )}
-              </div>
-
-              <div className="flex items-center gap-2">
-                {post ? (
-                  <>
-                    <Link href={`/posts/${post.id}`} className="rounded-lg bg-gray-800 px-3 py-1 text-xs hover:bg-gray-700">
-                      보기
-                    </Link>
-                    <Link href={`/posts/${post.id}/edit`} className="rounded-lg bg-gray-800 px-3 py-1 text-xs hover:bg-gray-700">
-                      교체
-                    </Link>
-                    <DeleteButton id={post.id} />
-                  </>
-                ) : (
-                  <Link
-                    href={`/posts/new?type=${type}`}
-                    className="rounded-lg bg-indigo-600 px-3 py-1 text-xs font-semibold hover:bg-indigo-500"
-                  >
-                    올리기
-                  </Link>
-                )}
-              </div>
-            </div>
-          );
+          const p = byType.get(type);
+          const slotPost: SlotPost = p
+            ? { id: p.id, fileName: p.fileName, linkUrl: p.linkUrl, description: p.description }
+            : null;
+          return <SlotUploader key={type} type={type} post={slotPost} />;
         })}
       </section>
     </main>
