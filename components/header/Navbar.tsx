@@ -11,8 +11,7 @@ const Navbar = () => {
   return (
     <nav className="flex items-center gap-4 text-sm text-gray-300">
       <Link href="/" className="hover:text-white">둘러보기</Link>
-      <Link href="/posts/new" className="hover:text-white">새 글</Link>
-      <Link href="/me" className="hover:text-white">내 보관함</Link>
+      <Link href="/me" className="hover:text-white">내 자료</Link>
     </nav>
   );
 };

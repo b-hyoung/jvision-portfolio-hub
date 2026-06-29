@@ -7,7 +7,6 @@ import { PostType, PostTypeLabels } from "@/constants/enums";
 type Initial = {
   id?: string;
   type?: string;
-  title?: string;
   description?: string | null;
   linkUrl?: string | null;
   fileName?: string | null;
@@ -17,7 +16,6 @@ export default function PostForm({ initial }: { initial?: Initial }) {
   const router = useRouter();
   const editing = Boolean(initial?.id);
   const [type, setType] = useState<string>(initial?.type ?? PostType.RESUME);
-  const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [linkUrl, setLinkUrl] = useState(initial?.linkUrl ?? "");
   const [file, setFile] = useState<File | null>(null);
@@ -31,7 +29,6 @@ export default function PostForm({ initial }: { initial?: Initial }) {
 
     const fd = new FormData();
     fd.set("type", type);
-    fd.set("title", title);
     fd.set("description", description ?? "");
     fd.set("linkUrl", linkUrl ?? "");
     if (file) fd.set("file", file);
@@ -57,9 +54,12 @@ export default function PostForm({ initial }: { initial?: Initial }) {
           <button
             type="button"
             key={t}
-            onClick={() => setType(t)}
-            className={`rounded-full px-4 py-1.5 text-sm ${
+            onClick={() => !editing && setType(t)}
+            disabled={editing}
+            className={`rounded-full px-4 py-1.5 text-sm transition ${
               type === t ? "bg-indigo-600" : "bg-gray-800 text-gray-300"
+            } ${editing ? "cursor-default opacity-100" : ""} ${
+              editing && type !== t ? "hidden" : ""
             }`}
           >
             {PostTypeLabels[t]}
@@ -68,16 +68,10 @@ export default function PostForm({ initial }: { initial?: Initial }) {
       </div>
 
       <input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="제목"
-        className="rounded-xl bg-gray-800 px-4 py-2.5 text-sm outline-none ring-1 ring-gray-700 focus:ring-indigo-500"
-      />
-      <textarea
         value={description ?? ""}
         onChange={(e) => setDescription(e.target.value)}
-        placeholder="설명 (선택)"
-        rows={4}
+        placeholder="한 줄 메모 (선택)"
+        maxLength={200}
         className="rounded-xl bg-gray-800 px-4 py-2.5 text-sm outline-none ring-1 ring-gray-700 focus:ring-indigo-500"
       />
       <input

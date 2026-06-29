@@ -22,7 +22,6 @@ export default async function EditPostPage({
         initial={{
           id: post.id,
           type: post.type,
-          title: post.title,
           description: post.description,
           linkUrl: post.linkUrl,
           fileName: post.fileName,

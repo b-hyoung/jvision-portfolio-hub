@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { saveUpload } from "@/lib/uploads";
+import { saveUpload, deleteUpload } from "@/lib/uploads";
 import { postInputSchema } from "@/validations/post";
 import { listPosts } from "@/server/posts";
 import { PostType } from "@/constants/enums";
@@ -27,7 +27,6 @@ export async function POST(req: Request) {
 
   const parsed = postInputSchema.safeParse({
     type: form.get("type"),
-    title: form.get("title"),
     description: form.get("description") ?? "",
     linkUrl: form.get("linkUrl") ?? "",
     hasFile,
@@ -49,16 +48,31 @@ export async function POST(req: Request) {
     }
   }
 
-  const post = await prisma.post.create({
-    data: {
+  // 학생당 카테고리별 1개 슬롯: 이미 있으면 교체(기존 파일 정리)
+  const existing = await prisma.post.findUnique({
+    where: { authorId_type: { authorId: session.user.id, type: parsed.data.type } },
+  });
+  if (existing && hasFile) {
+    await deleteUpload(existing.filePath);
+    await deleteUpload(existing.previewPath);
+  }
+
+  const data = {
+    description: parsed.data.description || null,
+    linkUrl: parsed.data.linkUrl || null,
+    ...(hasFile ? { filePath, fileName, previewPath } : {}),
+  };
+
+  const post = await prisma.post.upsert({
+    where: { authorId_type: { authorId: session.user.id, type: parsed.data.type } },
+    update: data,
+    create: {
       type: parsed.data.type,
-      title: parsed.data.title,
-      description: parsed.data.description || null,
-      linkUrl: parsed.data.linkUrl || null,
+      authorId: session.user.id,
       filePath,
       fileName,
       previewPath,
-      authorId: session.user.id,
+      ...data,
     },
   });
   return NextResponse.json({ ok: true, id: post.id });

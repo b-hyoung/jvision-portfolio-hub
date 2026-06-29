@@ -27,8 +27,8 @@ export default async function HomePage({
     <main className="mx-auto max-w-5xl p-6 flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">둘러보기</h1>
-        <Link href="/posts/new" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold hover:bg-indigo-500 transition-colors">
-          + 새 글
+        <Link href="/me" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold hover:bg-indigo-500 transition-colors">
+          내 자료 올리기
         </Link>
       </div>
 
@@ -36,7 +36,7 @@ export default async function HomePage({
         <input
           name="q"
           defaultValue={q ?? ""}
-          placeholder="제목·이름·학번 검색"
+          placeholder="이름·학번 검색"
           className="flex-1 rounded-xl bg-gray-800 px-4 py-2 text-sm outline-none ring-1 ring-gray-700 focus:ring-indigo-500"
         />
         <button className="rounded-xl bg-gray-700 px-4 text-sm hover:bg-gray-600">검색</button>

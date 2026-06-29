@@ -30,11 +30,12 @@ export default async function PostDetailPage({
           <span className="w-fit rounded-full bg-indigo-600/20 px-2.5 py-0.5 text-xs text-indigo-300">
             {PostTypeLabels[post.type as PostType] ?? post.type}
           </span>
-          <h1 className="text-2xl font-bold">{post.title}</h1>
-          <p className="text-sm text-gray-400">
+          <h1 className="text-2xl font-bold">
             {post.author.name ?? post.author.studentNo}
-            {post.author.department && ` · ${post.author.department}`}
-          </p>
+            <span className="ml-2 text-base font-normal text-gray-400">
+              {PostTypeLabels[post.type as PostType] ?? post.type}
+            </span>
+          </h1>
         </div>
         {isOwner && (
           <Link href={`/posts/${post.id}/edit`} className="rounded-lg bg-gray-800 px-3 py-1.5 text-sm hover:bg-gray-700">

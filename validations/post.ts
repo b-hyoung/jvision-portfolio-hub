@@ -4,8 +4,7 @@ import { PostType } from "@/constants/enums";
 export const postInputSchema = z
   .object({
     type: z.nativeEnum(PostType),
-    title: z.string().min(1, "제목을 입력하세요.").max(100),
-    description: z.string().max(2000).optional().or(z.literal("")),
+    description: z.string().max(200).optional().or(z.literal("")), // 한 줄 메모
     linkUrl: z
       .string()
       .url("올바른 URL을 입력하세요.")

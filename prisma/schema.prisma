@@ -19,13 +19,14 @@ model User {
 model Post {
   id          String   @id @default(cuid())
   type        String // RESUME | COVER_LETTER | PORTFOLIO
-  title       String
-  description String?
+  description String? // 한 줄 메모 (선택)
   filePath    String?
   fileName    String?
-  previewPath String? // PPTX 등을 변환한 미리보기용 PDF 경로
+  previewPath String? // HWP 등을 변환한 미리보기용 PDF 경로
   linkUrl     String?
   createdAt   DateTime @default(now())
   author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId    String
+
+  @@unique([authorId, type]) // 학생당 카테고리별 1개
 }

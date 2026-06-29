@@ -37,7 +37,6 @@ export async function PATCH(req: Request, { params }: Ctx) {
 
   const parsed = postInputSchema.safeParse({
     type: form.get("type"),
-    title: form.get("title"),
     description: form.get("description") ?? "",
     linkUrl: form.get("linkUrl") ?? "",
     hasFile,
@@ -62,8 +61,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
   await prisma.post.update({
     where: { id },
     data: {
-      type: parsed.data.type,
-      title: parsed.data.title,
+      // 슬롯 카테고리(type)는 고정
       description: parsed.data.description || null,
       linkUrl: parsed.data.linkUrl || null,
       filePath,
