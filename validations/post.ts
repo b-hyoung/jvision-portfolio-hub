@@ -22,7 +22,6 @@ export type PostInput = z.infer<typeof postInputSchema>;
 
 export const profileSchema = z.object({
   name: z.string().min(1, "이름을 입력하세요.").max(30),
-  department: z.string().max(50).optional().or(z.literal("")),
 });
 
 export type ProfileInput = z.infer<typeof profileSchema>;

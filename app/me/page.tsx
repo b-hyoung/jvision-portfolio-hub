@@ -24,7 +24,7 @@ export default async function MePage() {
           {user.department && ` · ${user.department}`}
         </p>
         <Link href="/onboarding" className="mt-3 inline-block rounded-lg bg-gray-800 px-3 py-1.5 text-sm hover:bg-gray-700">
-          이름/학과 수정
+          이름 수정
         </Link>
       </section>
 
