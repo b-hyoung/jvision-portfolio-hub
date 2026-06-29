@@ -1,0 +1,26 @@
+# Render 블루프린트 — Docker 웹 서비스 (무료 플랜)
+# 비밀값(sync:false)은 Render 대시보드 또는 첫 배포 시 입력한다.
+services:
+  - type: web
+    name: jvision-portfolio-hub
+    runtime: docker
+    plan: free
+    region: singapore # 한국에서 가장 가까운 무료 리전
+    healthCheckPath: /login
+    envVars:
+      - key: VISION_AUTH_URL
+        value: https://portal.jvision.ac.kr/user/loginAuth.face
+      - key: SUPABASE_URL
+        value: https://lzclvjdjemfkyskvtbyn.supabase.co
+      - key: SUPABASE_BUCKET
+        value: uploads
+      - key: NEXTAUTH_URL # 첫 배포 후 Render가 준 주소로 설정
+        sync: false
+      - key: NEXTAUTH_SECRET
+        sync: false
+      - key: DATABASE_URL # Supabase 풀러(6543)
+        sync: false
+      - key: DIRECT_URL # Supabase 직접(5432)
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false

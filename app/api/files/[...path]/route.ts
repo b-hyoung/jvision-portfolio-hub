@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
-import { readFile } from "fs/promises";
-import { uploadAbsPath } from "@/lib/uploads";
-import path from "path";
+import { signedUrl } from "@/lib/storage";
 
 type Ctx = { params: Promise<{ path: string[] }> };
 
@@ -12,25 +10,13 @@ export async function GET(_req: Request, { params }: Ctx) {
   if (!session?.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const { path: parts } = await params;
-  const rel = parts.join("/");
-  // 경로 조작 방지: 정규화 후 단일 세그먼트만 허용
-  if (rel.includes("..") || rel.includes("/"))
+  const key = parts.join("/");
+  // 경로 조작 방지: 단일 세그먼트만 허용
+  if (key.includes("..") || key.includes("/"))
     return NextResponse.json({ error: "bad path" }, { status: 400 });
 
-  try {
-    const buf = await readFile(uploadAbsPath(rel));
-    const ext = path.extname(rel).toLowerCase();
-    const ctypes: Record<string, string> = {
-      ".pdf": "application/pdf",
-      ".hwp": "application/x-hwp",
-      ".hwpx": "application/octet-stream",
-      ".png": "image/png",
-      ".jpg": "image/jpeg",
-      ".jpeg": "image/jpeg",
-    };
-    const ctype = ctypes[ext] ?? "application/octet-stream";
-    return new NextResponse(new Uint8Array(buf), { headers: { "Content-Type": ctype } });
-  } catch {
-    return NextResponse.json({ error: "not found" }, { status: 404 });
-  }
+  // 로그인한 사용자에게만 잠깐 동안 유효한 서명 URL로 리다이렉트
+  const url = await signedUrl(key, 3600);
+  if (!url) return NextResponse.json({ error: "not found" }, { status: 404 });
+  return NextResponse.redirect(url);
 }
