@@ -24,7 +24,7 @@ export default function OnboardingPage() {
       setError(d.error ?? "저장에 실패했습니다.");
       return;
     }
-    await update();
+    await update({ name }); // 세션 토큰의 이름 갱신
     router.push("/");
     router.refresh();
   }

@@ -33,15 +33,16 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
+      // 로그인 시점에만 토큰 채움 (매 요청 DB 조회 제거 → 속도 개선)
       if (user) {
         token.uid = user.id;
         token.studentNo = user.studentNo;
+        token.name = user.name ?? null;
       }
-      // 매 요청마다 최신 name 반영 (온보딩 직후 갱신용)
-      if (token.uid) {
-        const db = await prisma.user.findUnique({ where: { id: token.uid as string } });
-        token.name = db?.name ?? null;
+      // 온보딩에서 update({name}) 호출 시 토큰의 이름 갱신
+      if (trigger === "update" && session?.name !== undefined) {
+        token.name = session.name;
       }
       return token;
     },
