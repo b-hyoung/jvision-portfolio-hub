@@ -88,3 +88,16 @@ export enum Responses {
     WARNING = "warning",
     INFO = "info",
   }
+
+// 게시물 유형
+export enum PostType {
+  RESUME = "RESUME",
+  COVER_LETTER = "COVER_LETTER",
+  PORTFOLIO = "PORTFOLIO",
+}
+
+export const PostTypeLabels: Record<PostType, string> = {
+  [PostType.RESUME]: "이력서",
+  [PostType.COVER_LETTER]: "자소서",
+  [PostType.PORTFOLIO]: "포트폴리오",
+};
