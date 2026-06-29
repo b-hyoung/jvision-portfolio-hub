@@ -1,82 +1,118 @@
-# Front-end
+# JVision 포트폴리오 허브
 
-Next.js 기반 프론트엔드 프로젝트입니다.
-**TypeScript + Tailwind CSS + Redux + NextAuth** 구성으로 작성합니다.
+비전대학교 학생들이 **이력서·자기소개서·포트폴리오**를 올리고, 로그인한 다른 학생들의 자료도 자유롭게 둘러볼 수 있는 웹 사이트입니다.
 
----
-
-## 폴더 구조
-
-```
-front-end/
-├── app/                        # 라우팅 및 페이지 (Next.js App Router)
-│   ├── layout.tsx              # 공통 레이아웃 (헤더, Provider 등 감싸는 최상위)
-│   ├── page.tsx                # 루트 페이지 (/)
-│   └── globals.css             # 전역 스타일
-│
-├── components/                 # 재사용 가능한 UI 컴포넌트
-│   ├── ui/                     # 기본 UI 단위 (버튼, 인풋 등)
-│   │   ├── button.tsx
-│   │   └── input.tsx
-│   ├── header/                 # 헤더 관련 컴포넌트
-│   │   ├── index.tsx           # 헤더 진입점
-│   │   ├── Navbar.tsx          # 네비게이션 바
-│   │   └── auth-button.tsx     # 로그인/로그아웃 버튼
-│   └── footer/
-│       └── index.tsx           # 푸터
-│
-├── providers/                  # Context Provider 모음
-│   ├── ReduxProvider.tsx       # Redux store를 앱 전체에 제공
-│   └── NextAuthSessionProvider.tsx  # NextAuth 세션을 앱 전체에 제공
-│
-├── store/                      # Redux 전역 상태 관리
-│   ├── index.ts                # store 설정 및 RootState, AppDispatch 타입 export
-│   └── hooks.ts                # useAppDispatch, useAppSelector 커스텀 훅
-│
-├── server/                     # 서버 액션 (Next.js Server Actions)
-│   └── example-action.ts       # 서버 액션 예시
-│
-├── lib/                        # 유틸리티 함수 모음
-│   ├── utils.ts                # cn() - Tailwind 클래스 병합 유틸
-│   └── api-client.ts           # Django API 호출 기본 클라이언트
-│
-├── constants/                  # 상수 및 enum 정의
-│   └── enums.ts                # Environments 등 전역 enum
-│
-├── validations/                # 입력값 유효성 검사 스키마
-│   └── auth.ts                 # 로그인/회원가입 유효성 검사
-│
-├── public/                     # 정적 파일 (빌드 과정 없이 직접 서빙)
-│   ├── fonts/                  # 커스텀 폰트
-│   ├── icons/                  # 아이콘 파일
-│   └── images/                 # 이미지 파일
-│
-├── components.json             # shadcn/ui 설정 파일
-├── next.config.ts              # Next.js 설정
-├── tsconfig.json               # TypeScript 설정
-├── postcss.config.mjs          # PostCSS (Tailwind) 설정
-└── eslint.config.mjs           # ESLint 설정
-```
+> 이 저장소는 **AI(Claude)와 협업**하여 설계·구현한 결과물입니다.
+> 브레인스토밍 → 명세 작성 → 구현 계획 → TDD 기반 단계별 구현의 전 과정을 커밋 히스토리로 남겼으며,
+> 각 커밋의 `Co-Authored-By` 트레일러에 AI 협업 내역이 기록되어 있습니다.
 
 ---
 
-## 주요 기술 스택
+## 주요 기능
+
+- **포털 연동 로그인** — 비전대 포털(학번/비밀번호) 계정으로 인증. 별도 회원가입 없음.
+- **첫 로그인 온보딩** — 다른 학생에게 보일 이름·학과를 직접 설정.
+- **자료 올리기** — 이력서/자소서/포트폴리오 3가지 유형으로, **파일(PDF·이미지) + 외부 링크(GitHub·노션 등)** 를 함께 등록.
+- **둘러보기** — 전체 게시물을 카드 그리드로 열람, 유형 탭 필터 + 제목·이름·학번 검색.
+- **상세 보기** — PDF는 브라우저 내 미리보기, 이미지는 인라인 표시, 파일 다운로드 및 외부 링크 이동.
+- **내 보관함** — 내가 올린 글 목록 관리(수정·삭제)와 프로필 수정.
+- **권한 분리** — 게시물 수정·삭제는 작성자 본인만 가능.
+
+## 보안 설계
+
+- 비밀번호는 **DB에 저장하지 않습니다.** 매 로그인마다 포털 인증 엔드포인트로 검증만 수행하고, 우리 서버에는 학번·이름만 남습니다.
+- 업로드 파일은 인증된 사용자에게만 서빙되며, 경로 조작(`..`)을 차단합니다.
+
+---
+
+## 기술 스택
 
 | 항목 | 기술 |
 |---|---|
 | 프레임워크 | Next.js 16 (App Router) |
 | 언어 | TypeScript |
 | 스타일 | Tailwind CSS v4 |
-| 상태관리 | Redux Toolkit |
-| 인증 | NextAuth.js |
-| UI 컴포넌트 | shadcn/ui |
+| 인증 | NextAuth.js v4 (Credentials Provider) |
+| 데이터베이스 | Prisma + SQLite |
+| 유효성 검사 | zod |
+| 테스트 | Vitest |
 
----
+기반 골격은 [b-hyoung/Nextjs_setup](https://github.com/b-hyoung/Nextjs_setup) 구조를 가져와 시작했습니다.
 
-## 개발 실행
+## 아키텍처
+
+세 영역을 독립적으로 분리했습니다.
+
+```
+[브라우저] ──학번/비번──► NextAuth Credentials Provider (서버)
+                              │  포털 loginAuth.face 호출 (검증만, 비번 미저장)
+                              ▼
+                        SUCCESS/PASS ? ─► 세션 발급 + DB에 학번 upsert
+                              │
+   [페이지/API] ◄── 세션 ─────┘
+        ├─ /api/posts        게시물 CRUD  ──► Prisma ──► SQLite
+        ├─ /api/profile      이름·학과 설정
+        └─ /api/files/[…]    업로드 파일 서빙 ──► 로컬 uploads/
+```
+
+## 실행 방법
 
 ```bash
-cd front-end
+# 1. 의존성 설치
 npm install
-npm run dev
+
+# 2. 환경변수 설정 (.env.example 복사 후 값 채우기)
+cp .env.example .env
+#   - NEXTAUTH_SECRET 은 아래 명령으로 생성한 값을 사용
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+
+# 3. 데이터베이스 마이그레이션
+npx prisma migrate dev
+
+# 4. 개발 서버 실행
+npm run dev      # http://localhost:3000
 ```
+
+### 환경변수 (.env)
+
+| 변수 | 설명 |
+|---|---|
+| `VISION_AUTH_URL` | 포털 인증 엔드포인트 |
+| `NEXTAUTH_SECRET` | NextAuth 세션 서명 키 |
+| `NEXTAUTH_URL` | 앱 기본 URL |
+| `DATABASE_URL` | SQLite 파일 경로 |
+| `UPLOAD_DIR` | 업로드 파일 저장 디렉터리 |
+
+## 테스트
+
+```bash
+npm test          # 포털 검증 로직 + 게시물/프로필 스키마 단위 테스트
+```
+
+## 프로젝트 구조
+
+```
+app/                  # 라우팅·페이지 (App Router)
+  api/                #   NextAuth·게시물·프로필·파일 서빙 라우트
+  login, onboarding,  #   화면
+  posts/[id], me, …
+components/
+  header/             # 세션 인식 헤더·네비
+  posts/              # 카드·폼·탭·삭제 버튼
+lib/
+  vision-auth.ts      # 포털 로그인 검증
+  prisma.ts           # PrismaClient 싱글톤
+  uploads.ts          # 파일 저장·삭제·경로 유틸
+server/               # 서버 전용 조회 함수 (posts, profile)
+validations/          # zod 스키마 (auth, post)
+constants/enums.ts    # PostType 등 상수
+prisma/schema.prisma  # User, Post 모델
+docs/superpowers/     # 설계 명세 + 구현 계획 문서
+```
+
+## 개발 문서
+
+AI와의 협업 과정에서 작성한 산출물입니다.
+
+- 설계 명세: `docs/superpowers/specs/2026-06-29-student-portfolio-hub-design.md`
+- 구현 계획: `docs/superpowers/plans/2026-06-29-student-portfolio-hub.md`
