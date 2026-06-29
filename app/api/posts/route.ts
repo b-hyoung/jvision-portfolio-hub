@@ -37,11 +37,13 @@ export async function POST(req: Request) {
 
   let filePath: string | null = null;
   let fileName: string | null = null;
+  let previewPath: string | null = null;
   if (hasFile) {
     try {
       const saved = await saveUpload(file as File);
       filePath = saved.filePath;
       fileName = saved.fileName;
+      previewPath = saved.previewPath;
     } catch (e) {
       return NextResponse.json({ error: (e as Error).message }, { status: 400 });
     }
@@ -55,6 +57,7 @@ export async function POST(req: Request) {
       linkUrl: parsed.data.linkUrl || null,
       filePath,
       fileName,
+      previewPath,
       authorId: session.user.id,
     },
   });

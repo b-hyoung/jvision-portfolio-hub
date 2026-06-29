@@ -87,11 +87,11 @@ export default function PostForm({ initial }: { initial?: Initial }) {
         className="rounded-xl bg-gray-800 px-4 py-2.5 text-sm outline-none ring-1 ring-gray-700 focus:ring-indigo-500"
       />
       <label className="text-sm text-gray-400">
-        파일 (PDF/PNG/JPG, 최대 10MB)
+        파일 (PDF / HWP, 최대 20MB)
         {initial?.fileName && <span className="ml-2 text-gray-500">현재: {initial.fileName}</span>}
         <input
           type="file"
-          accept="application/pdf,image/png,image/jpeg"
+          accept=".pdf,.hwp,.hwpx,application/pdf"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           className="mt-1 block w-full text-sm text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-700 file:px-3 file:py-1.5 file:text-white"
         />

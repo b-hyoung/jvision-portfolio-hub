@@ -45,13 +45,15 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if (!parsed.success)
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
 
-  let { filePath, fileName } = guard.post;
+  let { filePath, fileName, previewPath } = guard.post;
   if (newFile) {
     try {
       await deleteUpload(guard.post.filePath);
+      await deleteUpload(guard.post.previewPath);
       const saved = await saveUpload(file as File);
       filePath = saved.filePath;
       fileName = saved.fileName;
+      previewPath = saved.previewPath;
     } catch (e) {
       return NextResponse.json({ error: (e as Error).message }, { status: 400 });
     }
@@ -66,6 +68,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
       linkUrl: parsed.data.linkUrl || null,
       filePath,
       fileName,
+      previewPath,
     },
   });
   return NextResponse.json({ ok: true });
@@ -76,6 +79,7 @@ export async function DELETE(_req: Request, { params }: Ctx) {
   const guard = await requireOwner(id);
   if ("error" in guard) return NextResponse.json({ error: guard.error }, { status: guard.status });
   await deleteUpload(guard.post.filePath);
+  await deleteUpload(guard.post.previewPath);
   await prisma.post.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 }

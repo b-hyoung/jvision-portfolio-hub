@@ -20,8 +20,15 @@ export async function GET(_req: Request, { params }: Ctx) {
   try {
     const buf = await readFile(uploadAbsPath(rel));
     const ext = path.extname(rel).toLowerCase();
-    const ctype =
-      ext === ".pdf" ? "application/pdf" : ext === ".png" ? "image/png" : "image/jpeg";
+    const ctypes: Record<string, string> = {
+      ".pdf": "application/pdf",
+      ".hwp": "application/x-hwp",
+      ".hwpx": "application/octet-stream",
+      ".png": "image/png",
+      ".jpg": "image/jpeg",
+      ".jpeg": "image/jpeg",
+    };
+    const ctype = ctypes[ext] ?? "application/octet-stream";
     return new NextResponse(new Uint8Array(buf), { headers: { "Content-Type": ctype } });
   } catch {
     return NextResponse.json({ error: "not found" }, { status: 404 });

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSessionUser } from "@/server/profile";
 import { getPost } from "@/server/posts";
 import { PostType, PostTypeLabels } from "@/constants/enums";
+import LinkPreviewCard from "@/components/posts/LinkPreviewCard";
 
 export default async function PostDetailPage({
   params,
@@ -17,8 +18,8 @@ export default async function PostDetailPage({
   if (!post) notFound();
 
   const isOwner = post.author.id === user.id;
-  const isPdf = post.fileName?.toLowerCase().endsWith(".pdf");
   const fileUrl = post.filePath ? `/api/files/${post.filePath}` : null;
+  const previewUrl = post.previewPath ? `/api/files/${post.previewPath}` : null;
 
   return (
     <main className="mx-auto max-w-3xl p-6 flex flex-col gap-5">
@@ -46,22 +47,19 @@ export default async function PostDetailPage({
         <p className="whitespace-pre-wrap text-gray-200">{post.description}</p>
       )}
 
-      {post.linkUrl && (
-        <a href={post.linkUrl} target="_blank" rel="noopener noreferrer" className="w-fit rounded-xl bg-gray-800 px-4 py-2 text-sm hover:bg-gray-700">
-          🔗 외부 링크 열기
-        </a>
-      )}
+      {post.linkUrl && <LinkPreviewCard url={post.linkUrl} />}
 
       {fileUrl && (
         <div className="flex flex-col gap-3">
           <a href={fileUrl} download={post.fileName ?? undefined} className="w-fit rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold hover:bg-indigo-500">
             📎 {post.fileName} 다운로드
           </a>
-          {isPdf ? (
-            <iframe src={fileUrl} className="h-[80vh] w-full rounded-xl ring-1 ring-gray-800" />
+          {previewUrl ? (
+            <iframe src={previewUrl} className="h-[80vh] w-full rounded-xl ring-1 ring-gray-800" />
           ) : (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={fileUrl} alt={post.fileName ?? "첨부 이미지"} className="rounded-xl ring-1 ring-gray-800" />
+            <p className="text-sm text-gray-500">
+              이 형식은 미리보기를 제공하지 않습니다. 다운로드해 확인하세요.
+            </p>
           )}
         </div>
       )}

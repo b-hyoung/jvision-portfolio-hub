@@ -23,6 +23,7 @@ model Post {
   description String?
   filePath    String?
   fileName    String?
+  previewPath String? // PPTX 등을 변환한 미리보기용 PDF 경로
   linkUrl     String?
   createdAt   DateTime @default(now())
   author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
