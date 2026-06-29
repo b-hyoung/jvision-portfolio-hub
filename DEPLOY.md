@@ -1,61 +1,48 @@
-# 배포 가이드 — Render(무료) + Supabase + UptimeRobot
+# 배포 가이드 — Vercel + Supabase (추천)
 
-데이터(DB·파일)를 **Supabase**로 빼서 앱을 상태 없는(stateless) 컨테이너로 만들고,
-**Render 무료**에 배포한 뒤 **UptimeRobot**으로 잠들지 않게 합니다. 전부 카드 없이 가능.
+DB·파일을 **Supabase**로 빼서 앱이 상태 없는(stateless) 구조가 됐으므로,
+Next.js 전용 호스팅인 **Vercel**에 그대로 올릴 수 있습니다. 무료(Hobby)·카드 불필요·잠들지 않음.
 
-- 미리보기: **PDF·링크는 미리보기 O**, HWP 파일은 다운로드(원하면 PDF로 올리면 미리보기됨)
-- DB: Supabase Postgres · 파일: Supabase Storage(비공개 버킷, 서명 URL로 열람)
+- 미리보기: **PDF·링크 미리보기 O**, HWP 파일은 다운로드(원하면 PDF로 올리면 미리보기됨)
+- DB: Supabase Postgres · 파일: Supabase Storage(비공개 버킷, 서명 URL)
+- 포털 인증의 TLS 중간 인증서는 코드에 내장 → 서버리스에서도 동작
 
 ---
 
-## 1. Supabase 준비
+## 1. Vercel 배포
 
-1. **연결 문자열** (Dashboard → 우상단 **Connect** → ORM/Prisma 탭)
-   - `DATABASE_URL` (Transaction pooler, 6543, `?pgbouncer=true`)
-   - `DIRECT_URL` (Session/Direct, 5432)
-   - 비밀번호 자리(`[YOUR-PASSWORD]`)를 실제 DB 비밀번호로 채움
-2. **service_role 키** (Settings → API → Project API keys → `service_role`) — 비공개 키
-3. **Storage 버킷 생성** (Storage → New bucket): 이름 `uploads`, **Public 끄기(비공개)**
+1. https://vercel.com → **GitHub로 로그인**(카드 X)
+2. **Add New → Project** → `b-hyoung/jvision-portfolio-hub` 임포트
+3. Framework: **Next.js** 자동 감지 → 빌드 설정 기본값 그대로
+4. **Environment Variables** 에 아래 입력 후 **Deploy**:
 
-> 위 값들은 `.env`(로컬, 커밋 안 됨)와 Render 환경변수에 넣습니다. 코드에는 안 들어갑니다.
-
-## 2. 로컬에서 마이그레이션 생성 (1회)
-
-`.env`에 `DATABASE_URL`·`DIRECT_URL`을 채운 뒤:
-
-```bash
-npx prisma migrate dev --name init   # Postgres용 마이그레이션 생성 + Supabase에 적용
-git add prisma/migrations && git commit -m "db: postgres 초기 마이그레이션"
-git push
+```
+NEXTAUTH_SECRET      = (openssl rand -base64 32 결과)
+NEXTAUTH_URL         = https://<프로젝트>.vercel.app   ← 첫 배포 후 실제 주소로 갱신
+DATABASE_URL         = postgresql://postgres.lzclvjdjemfkyskvtbyn:비번@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true
+DIRECT_URL           = postgresql://postgres.lzclvjdjemfkyskvtbyn:비번@aws-1-ap-south-1.pooler.supabase.com:5432/postgres
+SUPABASE_URL         = https://lzclvjdjemfkyskvtbyn.supabase.co
+SUPABASE_SERVICE_KEY = (service_role 키)
+SUPABASE_BUCKET      = uploads
+VISION_AUTH_URL      = https://portal.jvision.ac.kr/user/loginAuth.face
 ```
 
-## 3. Render 배포
+5. 첫 배포 후 주소 확인 → `NEXTAUTH_URL`을 그 주소로 바꾸고 **Redeploy** (로그인 콜백 일치 필요)
 
-1. https://render.com → 가입(카드 X) → **New → Web Service** → GitHub 레포 연결
-2. 환경: **Docker** 자동 감지 (`render.yaml` 있으면 Blueprint로 한 번에)
-3. **Environment** 에 비밀값 입력:
-   - `NEXTAUTH_SECRET` = `openssl rand -base64 32` 결과
-   - `DATABASE_URL`, `DIRECT_URL` = Supabase 연결 문자열
-   - `SUPABASE_SERVICE_KEY` = service_role 키
-   - (`SUPABASE_URL`, `SUPABASE_BUCKET`, `VISION_AUTH_URL`는 render.yaml에 기본값 있음)
-4. 첫 배포 후 주소(`https://jvision-portfolio-hub.onrender.com`) 확인 →
-   `NEXTAUTH_URL`을 그 주소로 설정하고 **재배포**
+> DB 마이그레이션은 이미 Supabase에 적용돼 있어, Vercel은 빌드 시 `prisma generate`(postinstall)만 하면 됩니다.
+> 런타임 DB 연결은 풀러(6543, `?pgbouncer=true`)를 사용 — 서버리스에 적합.
 
-## 4. UptimeRobot 으로 안 잠들게
-
-Render 무료는 15분 무요청 시 잠듭니다. https://uptimerobot.com (무료):
-- New Monitor → **HTTP(s)** → URL `https://<당신앱>.onrender.com/login` → 간격 **5분**
-- 5분마다 핑이 가서 깨어 있음
-
-## 5. (선택) Cloudflare 도메인
-
-Render에서 커스텀 도메인 추가 → Cloudflare DNS에 CNAME(→ onrender.com 주소, 프록시 ON) →
-`NEXTAUTH_URL`을 그 도메인으로 변경 후 재배포.
+## 2. (선택) Cloudflare 도메인
+Vercel 프로젝트 → Settings → Domains 에 커스텀 도메인 추가 →
+Cloudflare DNS에 Vercel이 안내하는 레코드 등록 → `NEXTAUTH_URL`을 그 도메인으로.
 
 ---
 
-## 주의
+## 참고
 
-- **무료 512MB**: 동시 사용자 많으면 느릴 수 있음. 커지면 Render 유료 또는 다른 호스트로.
-- HWP 자동 미리보기를 원하면: LibreOffice 가능한 서버에서 이미지에 LibreOffice 추가 + `ENABLE_HWP_CONVERT=1`.
-- Supabase 무료: DB 500MB / Storage 1GB. 학과 규모엔 충분.
+- **Vercel Hobby 무료**: 개인/포트폴리오용 충분. 함수 타임아웃 등 한도 내에서 동작(현재 요청은 가볍습니다).
+- HWP 자동 미리보기가 꼭 필요하면 서버리스로는 어려움 → 그땐 LibreOffice 가능한 Node 호스트 필요(아래 대안).
+
+### 대안 — Node 호스트(Render 등)
+저장소에 `Dockerfile`/`render.yaml`도 포함돼 있어, Render 같은 Docker 호스트로도 배포 가능.
+(LibreOffice를 이미지에 추가하고 `ENABLE_HWP_CONVERT=1` 하면 HWP 미리보기까지 가능)
