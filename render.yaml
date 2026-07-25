@@ -11,7 +11,7 @@ services:
       - key: VISION_AUTH_URL
         value: https://portal.jvision.ac.kr/user/loginAuth.face
       - key: SUPABASE_URL
-        value: https://lzclvjdjemfkyskvtbyn.supabase.co
+        value: https://llwtujyvieonaaoessee.supabase.co
       - key: SUPABASE_BUCKET
         value: uploads
       - key: NEXTAUTH_URL # 첫 배포 후 Render가 준 주소로 설정

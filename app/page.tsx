@@ -8,25 +8,33 @@ import StudentCard from "@/components/posts/StudentCard";
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; type?: string }>;
 }) {
   const user = await getSessionUser();
   if (!user) redirect("/login");
   if (!user.name) redirect("/onboarding");
 
-  const { q } = await searchParams;
-  const students = await listStudents(q);
+  // 이력서 둘러보기(기본)에 묶는 문서 카테고리 — AI 프로젝트는 별도 화면으로 분리
+  const DOC_TYPES = [PostType.RESUME, PostType.COVER_LETTER, PostType.PORTFOLIO];
+
+  const { q, type: typeParam } = await searchParams;
+  const isAi = typeParam === PostType.AI_PROJECT;
+  const shownTypes = isAi ? [PostType.AI_PROJECT] : DOC_TYPES;
+  const students = await listStudents(q, shownTypes);
 
   return (
     <main className="mx-auto max-w-5xl p-6 flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">둘러보기</h1>
+        <h1 className="text-2xl font-bold">
+          {isAi ? "AI 프로젝트 둘러보기" : "이력서 둘러보기"}
+        </h1>
         <Link href="/me" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold hover:bg-indigo-500 transition-colors">
           내 자료 올리기
         </Link>
       </div>
 
       <form className="flex gap-2">
+        {isAi && <input type="hidden" name="type" value={PostType.AI_PROJECT} />}
         <input
           name="q"
           defaultValue={q ?? ""}
@@ -39,7 +47,7 @@ export default async function HomePage({
       {/* 색상 범례 */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-400">
         <span className="text-gray-500">색상 =</span>
-        {Object.values(PostType).map((t) => (
+        {shownTypes.map((t) => (
           <span key={t} className="flex items-center gap-1.5">
             <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: PostTypeColors[t] }} />
             {PostTypeLabels[t]}
@@ -49,11 +57,13 @@ export default async function HomePage({
       </div>
 
       {students.length === 0 ? (
-        <p className="py-20 text-center text-gray-500">아직 올린 학생이 없습니다.</p>
+        <p className="py-20 text-center text-gray-500">
+          {isAi ? "아직 AI 프로젝트를 올린 학생이 없습니다." : "아직 올린 학생이 없습니다."}
+        </p>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {students.map((s) => (
-            <StudentCard key={s.id} student={s} />
+            <StudentCard key={s.id} student={s} types={shownTypes} />
           ))}
         </div>
       )}

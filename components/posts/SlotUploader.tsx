@@ -9,6 +9,7 @@ export type SlotPost = {
   id: string;
   fileName: string | null;
   linkUrl: string | null;
+  deployUrl: string | null;
   description: string | null;
 } | null;
 
@@ -23,6 +24,7 @@ export default function SlotUploader({
   const [open, setOpen] = useState(false); // 업로드/교체 폼 열림
   const [file, setFile] = useState<File | null>(null);
   const [linkUrl, setLinkUrl] = useState(post?.linkUrl ?? "");
+  const [deployUrl, setDeployUrl] = useState(post?.deployUrl ?? "");
   const [description, setDescription] = useState(post?.description ?? "");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -36,6 +38,7 @@ export default function SlotUploader({
     fd.set("type", type);
     fd.set("description", description ?? "");
     fd.set("linkUrl", linkUrl ?? "");
+    fd.set("deployUrl", isAiProject ? deployUrl ?? "" : "");
     if (file) fd.set("file", file);
 
     const res = await fetch("/api/posts", { method: "POST", body: fd });
@@ -59,6 +62,16 @@ export default function SlotUploader({
   }
 
   const filled = Boolean(post);
+  const isAiProject = type === PostType.AI_PROJECT;
+  const fileAccept = isAiProject
+    ? ".pptx,.ppt,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    : ".pdf,.hwp,.hwpx,application/pdf";
+  const fileHint = isAiProject
+    ? "파일 (PPTX, 최대 20MB)"
+    : "파일 (PDF / HWP, 최대 20MB)";
+  const linkPlaceholder = isAiProject
+    ? "발표자료 HTML 링크 (배포 슬라이드 등, 선택)"
+    : "외부 링크 (노션/GitHub 등, 선택)";
 
   return (
     <div className="flex flex-col gap-3 rounded-2xl bg-gray-900 p-5 ring-1 ring-gray-800">
@@ -71,6 +84,7 @@ export default function SlotUploader({
             <span className="text-sm text-gray-400">
               {post!.fileName ? `📎 ${post!.fileName}` : ""}
               {post!.linkUrl ? " 🔗 링크" : ""}
+              {post!.deployUrl ? " 🚀 배포" : ""}
             </span>
           ) : (
             <span className="text-sm text-gray-600">아직 올리지 않음</span>
@@ -108,10 +122,10 @@ export default function SlotUploader({
       {open && (
         <form onSubmit={onSubmit} className="flex flex-col gap-3 border-t border-gray-800 pt-3">
           <label className="text-sm text-gray-400">
-            파일 (PDF / HWP, 최대 20MB)
+            {fileHint}
             <input
               type="file"
-              accept=".pdf,.hwp,.hwpx,application/pdf"
+              accept={fileAccept}
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
               className="mt-1 block w-full text-sm text-gray-300 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-700 file:px-3 file:py-1.5 file:text-white"
             />
@@ -119,9 +133,17 @@ export default function SlotUploader({
           <input
             value={linkUrl}
             onChange={(e) => setLinkUrl(e.target.value)}
-            placeholder="외부 링크 (노션/GitHub 등, 선택)"
+            placeholder={linkPlaceholder}
             className="rounded-xl bg-gray-800 px-4 py-2 text-sm outline-none ring-1 ring-gray-700 focus:ring-indigo-500"
           />
+          {isAiProject && (
+            <input
+              value={deployUrl}
+              onChange={(e) => setDeployUrl(e.target.value)}
+              placeholder="🚀 배포 링크 (실제 배포된 사이트 주소, 선택)"
+              className="rounded-xl bg-gray-800 px-4 py-2 text-sm outline-none ring-1 ring-gray-700 focus:ring-indigo-500"
+            />
+          )}
           <input
             value={description}
             onChange={(e) => setDescription(e.target.value)}

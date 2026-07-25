@@ -4,7 +4,7 @@ import path from "path";
 import { putObject, deleteObject } from "@/lib/storage";
 import { convertToPdf } from "@/lib/convert";
 
-const ALLOWED_EXT = new Set([".pdf", ".hwp", ".hwpx"]);
+const ALLOWED_EXT = new Set([".pdf", ".hwp", ".hwpx", ".pptx", ".ppt"]);
 const MAX_BYTES = 20 * 1024 * 1024; // 20MB
 // HWP→PDF 변환 사용 여부 (LibreOffice 설치된 서버에서만). 기본 비활성.
 const CONVERT = process.env.ENABLE_HWP_CONVERT === "1";
@@ -18,7 +18,7 @@ export type SavedUpload = {
 export async function saveUpload(file: File): Promise<SavedUpload> {
   const ext = path.extname(file.name).toLowerCase();
   if (!ALLOWED_EXT.has(ext))
-    throw new Error("PDF 또는 HWP 파일만 업로드할 수 있습니다.");
+    throw new Error("PDF · HWP · PPTX 파일만 업로드할 수 있습니다.");
   if (file.size > MAX_BYTES) throw new Error("파일 크기는 20MB를 넘을 수 없습니다.");
 
   const buf = Buffer.from(await file.arrayBuffer());

@@ -10,6 +10,7 @@ export type ViewerDoc = {
   fileName: string | null;
   description: string | null;
   linkUrl: string | null;
+  deployUrl: string | null;
   linkPreview: {
     title: string | null;
     description: string | null;
@@ -21,10 +22,13 @@ export type ViewerDoc = {
 export default function StudentDocViewer({
   docs,
   initialType,
+  types,
 }: {
   docs: ViewerDoc[];
   initialType: string;
+  types?: PostType[];
 }) {
+  const tabs = types ?? Object.values(PostType);
   const byType = new Map(docs.map((d) => [d.type, d]));
   const [active, setActive] = useState(initialType);
   const doc = byType.get(active);
@@ -33,7 +37,7 @@ export default function StudentDocViewer({
     <div className="flex flex-col gap-4">
       {/* 카테고리 탭 — 한 화면에서 바꿔가며 보기 */}
       <div className="flex gap-2">
-        {Object.values(PostType).map((t) => {
+        {tabs.map((t) => {
           const has = byType.has(t);
           return (
             <button
@@ -90,6 +94,42 @@ export default function StudentDocViewer({
                 <span className="mt-1 text-xs text-indigo-400">🔗 열기 →</span>
               </div>
             </a>
+          )}
+
+          {/* AI 프로젝트 HTML 링크는 바로 볼 수 있게 인라인 임베드 (차단 시 위 '열기'로 폴백) */}
+          {doc.type === PostType.AI_PROJECT && doc.linkUrl && (
+            <div className="flex flex-col gap-1">
+              <iframe
+                src={doc.linkUrl}
+                className="h-[88vh] w-full rounded-xl ring-1 ring-gray-800 bg-white"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+              />
+              <p className="text-xs text-gray-500">
+                화면이 비어 있으면 이 사이트가 임베드를 차단한 것입니다. 위 “🔗 열기”로 새 탭에서 확인하세요.
+              </p>
+            </div>
+          )}
+
+          {/* AI 프로젝트 배포 링크 — 열기 버튼 + 인라인 임베드 */}
+          {doc.type === PostType.AI_PROJECT && doc.deployUrl && (
+            <div className="flex flex-col gap-1">
+              <a
+                href={doc.deployUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="self-start rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold hover:bg-emerald-500"
+              >
+                🚀 배포 사이트 열기 →
+              </a>
+              <iframe
+                src={doc.deployUrl}
+                className="h-[88vh] w-full rounded-xl ring-1 ring-gray-800 bg-white"
+                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+              />
+              <p className="text-xs text-gray-500">
+                화면이 비어 있으면 이 사이트가 임베드를 차단한 것입니다. 위 “배포 사이트 열기”로 새 탭에서 확인하세요.
+              </p>
+            </div>
           )}
 
           {doc.fileUrl && (

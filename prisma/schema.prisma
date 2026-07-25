@@ -19,12 +19,13 @@ model User {
 
 model Post {
   id          String   @id @default(cuid())
-  type        String // RESUME | COVER_LETTER | PORTFOLIO
+  type        String // RESUME | COVER_LETTER | PORTFOLIO | AI_PROJECT
   description String? // 한 줄 메모 (선택)
   filePath    String?
   fileName    String?
   previewPath String? // HWP 등을 변환한 미리보기용 PDF 경로
-  linkUrl     String?
+  linkUrl     String? // 외부/발표자료 HTML 링크
+  deployUrl   String? // 배포된 사이트 링크 (AI 프로젝트)
   createdAt   DateTime @default(now())
   author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId    String

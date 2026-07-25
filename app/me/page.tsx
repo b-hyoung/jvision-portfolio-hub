@@ -30,14 +30,14 @@ export default async function MePage() {
       <section className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold">내 자료</h2>
-          <span className="text-sm text-gray-400">{filled} / 3 완료</span>
+          <span className="text-sm text-gray-400">{filled} / {slots.length} 완료</span>
         </div>
-        <p className="text-sm text-gray-500">이력서·자소서·포트폴리오를 각각 올려주세요.</p>
+        <p className="text-sm text-gray-500">이력서·자소서·포트폴리오·AI 프로젝트를 각각 올려주세요.</p>
 
         {slots.map((type) => {
           const p = byType.get(type);
           const slotPost: SlotPost = p
-            ? { id: p.id, fileName: p.fileName, linkUrl: p.linkUrl, description: p.description }
+            ? { id: p.id, fileName: p.fileName, linkUrl: p.linkUrl, deployUrl: p.deployUrl, description: p.description }
             : null;
           return <SlotUploader key={type} type={type} post={slotPost} />;
         })}

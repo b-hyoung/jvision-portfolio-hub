@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSessionUser } from "@/server/profile";
 import { getPost, getPostsByAuthor } from "@/server/posts";
 import { getLinkPreview } from "@/lib/link-preview";
+import { PostType } from "@/constants/enums";
 import StudentDocViewer, { type ViewerDoc } from "@/components/posts/StudentDocViewer";
 
 export default async function PostDetailPage({
@@ -20,14 +21,21 @@ export default async function PostDetailPage({
   const isOwner = post.author.id === user.id;
   const authorPosts = await getPostsByAuthor(post.author.id);
 
+  // AI 프로젝트와 문서(이력서/자소서/포트폴리오)는 상세 뷰도 분리 — 연 자료와 같은 그룹만 보여준다
+  const DOC_TYPES: PostType[] = [PostType.RESUME, PostType.COVER_LETTER, PostType.PORTFOLIO];
+  const scopeTypes: PostType[] =
+    post.type === PostType.AI_PROJECT ? [PostType.AI_PROJECT] : DOC_TYPES;
+  const scopedPosts = authorPosts.filter((p) => scopeTypes.includes(p.type as PostType));
+
   const docs: ViewerDoc[] = await Promise.all(
-    authorPosts.map(async (p) => ({
+    scopedPosts.map(async (p) => ({
       type: p.type,
       fileUrl: p.filePath ? `/api/files/${p.filePath}` : null,
       previewUrl: p.previewPath ? `/api/files/${p.previewPath}` : null,
       fileName: p.fileName,
       description: p.description,
       linkUrl: p.linkUrl,
+      deployUrl: p.deployUrl,
       linkPreview: p.linkUrl ? await getLinkPreview(p.linkUrl) : null,
     }))
   );
@@ -48,7 +56,7 @@ export default async function PostDetailPage({
         )}
       </div>
 
-      <StudentDocViewer docs={docs} initialType={post.type} />
+      <StudentDocViewer docs={docs} initialType={post.type} types={scopeTypes} />
     </main>
   );
 }

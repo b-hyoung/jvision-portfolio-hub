@@ -50,3 +50,6 @@ next-env.d.ts
 
 # Claude Code
 .claude
+
+# 로컬 MCP 설정 (커밋 제외)
+.mcp.json

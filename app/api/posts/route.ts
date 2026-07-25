@@ -29,6 +29,7 @@ export async function POST(req: Request) {
     type: form.get("type"),
     description: form.get("description") ?? "",
     linkUrl: form.get("linkUrl") ?? "",
+    deployUrl: form.get("deployUrl") ?? "",
     hasFile,
   });
   if (!parsed.success)
@@ -60,6 +61,7 @@ export async function POST(req: Request) {
   const data = {
     description: parsed.data.description || null,
     linkUrl: parsed.data.linkUrl || null,
+    deployUrl: parsed.data.deployUrl || null,
     ...(hasFile ? { filePath, fileName, previewPath } : {}),
   };
 

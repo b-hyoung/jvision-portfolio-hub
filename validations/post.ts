@@ -10,12 +10,23 @@ export const postInputSchema = z
       .url("올바른 URL을 입력하세요.")
       .optional()
       .or(z.literal("")),
+    deployUrl: z
+      .string()
+      .url("올바른 배포 URL을 입력하세요.")
+      .optional()
+      .or(z.literal("")),
     hasFile: z.boolean(),
   })
-  .refine((v) => v.hasFile || (v.linkUrl && v.linkUrl.length > 0), {
-    message: "파일 또는 링크 중 하나는 반드시 입력해야 합니다.",
-    path: ["linkUrl"],
-  });
+  .refine(
+    (v) =>
+      v.hasFile ||
+      (v.linkUrl?.length ?? 0) > 0 ||
+      (v.deployUrl?.length ?? 0) > 0,
+    {
+      message: "파일 또는 링크 중 하나는 반드시 입력해야 합니다.",
+      path: ["linkUrl"],
+    }
+  );
 
 export type PostInput = z.infer<typeof postInputSchema>;
 

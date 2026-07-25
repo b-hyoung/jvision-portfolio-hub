@@ -35,11 +35,12 @@ export async function getPostsByAuthor(authorId: string) {
   });
 }
 
-/** 자료를 1개 이상 올린 학생 목록 + 각자 올린 카테고리(슬롯) */
-export async function listStudents(q?: string) {
+/** 자료를 1개 이상 올린 학생 목록 + 각자 올린 카테고리(슬롯)
+ *  types를 주면 그 카테고리들 중 하나라도 올린 학생만 필터한다. */
+export async function listStudents(q?: string, types?: PostType[]) {
   return prisma.user.findMany({
     where: {
-      posts: { some: {} },
+      posts: { some: types && types.length ? { type: { in: types } } : {} },
       ...(q
         ? {
             OR: [

@@ -126,5 +126,7 @@
   }
   html {
     @apply font-sans;
+    /* 전체 글씨·여백 키우기 (기본 16px → 18px) */
+    font-size: 112.5%;
   }
 }

@@ -19,9 +19,9 @@ Next.js 전용 호스팅인 **Vercel**에 그대로 올릴 수 있습니다. 무
 ```
 NEXTAUTH_SECRET      = (openssl rand -base64 32 결과)
 NEXTAUTH_URL         = https://<프로젝트>.vercel.app   ← 첫 배포 후 실제 주소로 갱신
-DATABASE_URL         = postgresql://postgres.lzclvjdjemfkyskvtbyn:비번@aws-1-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true
-DIRECT_URL           = postgresql://postgres.lzclvjdjemfkyskvtbyn:비번@aws-1-ap-south-1.pooler.supabase.com:5432/postgres
-SUPABASE_URL         = https://lzclvjdjemfkyskvtbyn.supabase.co
+DATABASE_URL         = postgresql://postgres.llwtujyvieonaaoessee:비번@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true
+DIRECT_URL           = postgresql://postgres.llwtujyvieonaaoessee:비번@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres
+SUPABASE_URL         = https://llwtujyvieonaaoessee.supabase.co
 SUPABASE_SERVICE_KEY = (service_role 키)
 SUPABASE_BUCKET      = uploads
 VISION_AUTH_URL      = https://portal.jvision.ac.kr/user/loginAuth.face
