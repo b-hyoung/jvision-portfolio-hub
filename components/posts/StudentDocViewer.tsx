@@ -49,8 +49,8 @@ export default function StudentDocViewer({
                 active === t
                   ? "bg-indigo-600 text-white"
                   : has
-                    ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                    : "bg-gray-900 text-gray-600 cursor-not-allowed"
+                    ? "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    : "bg-gray-50 dark:bg-gray-950 text-gray-500 dark:text-gray-500 cursor-not-allowed"
               }`}
             >
               {PostTypeLabels[t]}
@@ -61,11 +61,11 @@ export default function StudentDocViewer({
       </div>
 
       {!doc ? (
-        <p className="py-20 text-center text-gray-500">이 카테고리는 아직 자료가 없습니다.</p>
+        <p className="py-20 text-center text-gray-600 dark:text-gray-400">이 카테고리는 아직 자료가 없습니다.</p>
       ) : (
         <div className="flex flex-col gap-3">
           {doc.description && (
-            <p className="whitespace-pre-wrap text-gray-200">{doc.description}</p>
+            <p className="whitespace-pre-wrap text-gray-800 dark:text-gray-200">{doc.description}</p>
           )}
 
           {doc.linkUrl && (
@@ -73,25 +73,25 @@ export default function StudentDocViewer({
               href={doc.linkUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex overflow-hidden rounded-2xl ring-1 ring-gray-800 hover:ring-indigo-500 transition"
+              className="flex overflow-hidden rounded-2xl ring-1 ring-gray-200 dark:ring-gray-800 hover:ring-indigo-500 transition"
             >
               {doc.linkPreview?.image && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={doc.linkPreview.image} alt="" className="h-32 w-44 shrink-0 object-cover" />
               )}
               <div className="flex flex-col gap-1 p-4">
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-600 dark:text-gray-400">
                   {doc.linkPreview?.siteName ?? new URL(doc.linkUrl).host}
                 </span>
                 <span className="font-semibold line-clamp-1">
                   {doc.linkPreview?.title ?? doc.linkUrl}
                 </span>
                 {doc.linkPreview?.description && (
-                  <span className="text-sm text-gray-400 line-clamp-2">
+                  <span className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                     {doc.linkPreview.description}
                   </span>
                 )}
-                <span className="mt-1 text-xs text-indigo-400">🔗 열기 →</span>
+                <span className="mt-1 text-xs text-indigo-600 dark:text-indigo-400">🔗 열기 →</span>
               </div>
             </a>
           )}
@@ -101,10 +101,12 @@ export default function StudentDocViewer({
             <div className="flex flex-col gap-1">
               <iframe
                 src={doc.linkUrl}
-                className="h-[88vh] w-full rounded-xl ring-1 ring-gray-800 bg-white"
+                title="발표자료 미리보기"
+                loading="lazy"
+                className="h-[88vh] w-full rounded-xl ring-1 ring-gray-200 dark:ring-gray-800 bg-white dark:bg-gray-900"
                 sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 화면이 비어 있으면 이 사이트가 임베드를 차단한 것입니다. 위 “🔗 열기”로 새 탭에서 확인하세요.
               </p>
             </div>
@@ -117,16 +119,18 @@ export default function StudentDocViewer({
                 href={doc.deployUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="self-start rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold hover:bg-emerald-500"
+                className="self-start rounded-xl bg-emerald-600 text-white px-4 py-2 text-sm font-semibold hover:bg-emerald-500"
               >
                 🚀 배포 사이트 열기 →
               </a>
               <iframe
                 src={doc.deployUrl}
-                className="h-[88vh] w-full rounded-xl ring-1 ring-gray-800 bg-white"
+                title="배포 사이트 미리보기"
+                loading="lazy"
+                className="h-[88vh] w-full rounded-xl ring-1 ring-gray-200 dark:ring-gray-800 bg-white dark:bg-gray-900"
                 sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 화면이 비어 있으면 이 사이트가 임베드를 차단한 것입니다. 위 “배포 사이트 열기”로 새 탭에서 확인하세요.
               </p>
             </div>
@@ -137,7 +141,7 @@ export default function StudentDocViewer({
               <a
                 href={doc.fileUrl}
                 download={doc.fileName ?? undefined}
-                className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold hover:bg-indigo-500"
+                className="rounded-xl bg-indigo-600 text-white px-4 py-2 text-sm font-semibold hover:bg-indigo-500"
               >
                 📎 {doc.fileName} 다운로드
               </a>
@@ -146,7 +150,7 @@ export default function StudentDocViewer({
                   href={doc.previewUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rounded-xl bg-gray-800 px-4 py-2 text-sm hover:bg-gray-700"
+                  className="rounded-xl bg-gray-100 dark:bg-gray-800 px-4 py-2 text-sm hover:bg-gray-200 dark:hover:bg-gray-700"
                 >
                   ⤢ 새 탭에서 크게 보기
                 </a>
@@ -157,11 +161,13 @@ export default function StudentDocViewer({
           {doc.previewUrl ? (
             <iframe
               src={`${doc.previewUrl}#view=FitH`}
-              className="h-[88vh] w-full rounded-xl ring-1 ring-gray-800 bg-white"
+              title="문서 미리보기"
+              loading="lazy"
+              className="h-[88vh] w-full rounded-xl ring-1 ring-gray-200 dark:ring-gray-800 bg-white dark:bg-gray-900"
             />
           ) : (
             doc.fileUrl && (
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 이 형식은 미리보기를 제공하지 않습니다. 다운로드해 확인하세요.
               </p>
             )

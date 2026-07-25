@@ -23,10 +23,10 @@ export default function StudentCard({
   const firstId = shown.map((t) => byType.get(t)).find(Boolean) ?? student.posts[0]?.id;
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-gray-900 p-5 ring-1 ring-gray-800 hover:ring-gray-700 transition">
+    <div className="flex flex-col gap-3 rounded-2xl bg-white dark:bg-gray-900 p-5 ring-1 ring-gray-200 dark:ring-gray-800 hover:ring-gray-300 dark:hover:ring-gray-700 transition">
       <div className="flex items-baseline justify-between gap-2">
         <span className="font-semibold text-lg">{student.name ?? student.studentNo}</span>
-        <span className="text-xs text-gray-500">{done} / {shown.length}</span>
+        <span className="text-xs text-gray-600 dark:text-gray-400">{done} / {shown.length}</span>
       </div>
 
       {/* 카테고리별 색상 — 올린 건 컬러(눌러서 해당 자료로), 안 올린 건 흐리게 */}
@@ -49,7 +49,7 @@ export default function StudentCard({
           return (
             <span
               key={t}
-              className="rounded-full px-2.5 py-1 text-xs font-medium text-gray-600 ring-1 ring-gray-800"
+              className="rounded-full px-2.5 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 ring-1 ring-gray-200 dark:ring-gray-800"
             >
               ○ {PostTypeLabels[t]}
             </span>
@@ -61,7 +61,7 @@ export default function StudentCard({
       {firstId && (
         <Link
           href={`/posts/${firstId}`}
-          className="mt-1 rounded-xl bg-indigo-600 py-2 text-center text-sm font-semibold text-white transition hover:bg-indigo-500 active:scale-[0.98]"
+          className="mt-1 inline-flex min-h-11 items-center justify-center rounded-xl bg-indigo-600 text-sm font-semibold text-white transition hover:bg-indigo-500 active:scale-[0.98]"
         >
           자료 보기 →
         </Link>

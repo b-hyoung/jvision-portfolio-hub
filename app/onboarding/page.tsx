@@ -33,13 +33,13 @@ export default function OnboardingPage() {
     <main className="min-h-screen flex items-center justify-center p-6">
       <form
         onSubmit={onSubmit}
-        className="w-full max-w-sm flex flex-col gap-4 rounded-2xl bg-gray-900 p-8 ring-1 ring-gray-800"
+        className="w-full max-w-sm flex flex-col gap-4 rounded-2xl bg-white dark:bg-gray-900 p-8 ring-1 ring-gray-200 dark:ring-gray-800"
       >
         <h1 className="text-2xl font-bold">프로필 설정</h1>
-        <p className="text-sm text-gray-400">다른 학생에게 보일 이름을 입력하세요.</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">다른 학생에게 보일 이름을 입력하세요.</p>
         <Input placeholder="이름 (필수)" value={name} onChange={(e) => setName(e.target.value)} />
         {error && <p className="text-sm text-red-400">{error}</p>}
-        <button type="submit" className="mt-2 rounded-xl bg-indigo-600 py-2.5 font-semibold hover:bg-indigo-500 transition-colors">
+        <button type="submit" className="mt-2 rounded-xl bg-indigo-600 text-white py-2.5 font-semibold hover:bg-indigo-500 transition-colors">
           저장하고 시작하기
         </button>
       </form>

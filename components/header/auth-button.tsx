@@ -13,7 +13,7 @@ const AuthButtons = () => {
 
   if (!session?.user) {
     return (
-      <Link href="/login" className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold hover:bg-indigo-500">
+      <Link href="/login" className="rounded-lg bg-indigo-600 text-white px-3 py-1.5 text-sm font-semibold hover:bg-indigo-500">
         로그인
       </Link>
     );
@@ -21,10 +21,10 @@ const AuthButtons = () => {
 
   return (
     <div className="flex items-center gap-3 text-sm">
-      <span className="text-gray-400">{session.user.name ?? session.user.studentNo}</span>
+      <span className="text-gray-600 dark:text-gray-400">{session.user.name ?? session.user.studentNo}</span>
       <button
         onClick={() => signOut({ callbackUrl: "/login" })}
-        className="rounded-lg bg-gray-800 px-3 py-1.5 hover:bg-gray-700"
+        className="rounded-lg bg-gray-100 dark:bg-gray-800 px-3 py-1.5 hover:bg-gray-200 dark:hover:bg-gray-700"
       >
         로그아웃
       </button>

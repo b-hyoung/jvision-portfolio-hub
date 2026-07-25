@@ -42,15 +42,15 @@ export default async function PostDetailPage({
 
   return (
     <main className="mx-auto max-w-6xl p-6 flex flex-col gap-5">
-      <Link href="/" className="text-sm text-gray-400 hover:text-white">← 둘러보기</Link>
+      <Link href="/" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-50">← 둘러보기</Link>
 
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">
           {post.author.name ?? post.author.studentNo}
-          <span className="ml-2 text-base font-normal text-gray-400">의 자료</span>
+          <span className="ml-2 text-base font-normal text-gray-600 dark:text-gray-400">의 자료</span>
         </h1>
         {isOwner && (
-          <Link href="/me" className="rounded-lg bg-gray-800 px-3 py-1.5 text-sm hover:bg-gray-700">
+          <Link href="/me" className="rounded-lg bg-gray-100 dark:bg-gray-800 px-3 py-1.5 text-sm hover:bg-gray-200 dark:hover:bg-gray-700">
             내 자료 관리
           </Link>
         )}

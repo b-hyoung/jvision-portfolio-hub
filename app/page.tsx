@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { getSessionUser } from "@/server/profile";
-import { listStudents } from "@/server/posts";
+import { listStudents, getPostsByAuthor } from "@/server/posts";
 import { PostType, PostTypeLabels, PostTypeColors } from "@/constants/enums";
 import StudentCard from "@/components/posts/StudentCard";
+import UploadModalButton from "@/components/posts/UploadModalButton";
 
 export default async function HomePage({
   searchParams,
@@ -22,15 +22,35 @@ export default async function HomePage({
   const shownTypes = isAi ? [PostType.AI_PROJECT] : DOC_TYPES;
   const students = await listStudents(q, shownTypes);
 
+  // 이 화면 맥락에 맞는 카테고리만 올리는 모달용 — 내가 올린 자료를 슬롯에 채운다
+  const myPosts = await getPostsByAuthor(user.id);
+  const myByType = new Map(myPosts.map((p) => [p.type, p]));
+  const scopeSlots = shownTypes.map((t) => {
+    const p = myByType.get(t);
+    return {
+      type: t,
+      post: p
+        ? {
+            id: p.id,
+            fileName: p.fileName,
+            linkUrl: p.linkUrl,
+            deployUrl: p.deployUrl,
+            description: p.description,
+          }
+        : null,
+    };
+  });
+
   return (
     <main className="mx-auto max-w-5xl p-6 flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">
           {isAi ? "AI 프로젝트 둘러보기" : "이력서 둘러보기"}
         </h1>
-        <Link href="/me" className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold hover:bg-indigo-500 transition-colors">
-          내 자료 올리기
-        </Link>
+        <UploadModalButton
+          slots={scopeSlots}
+          scopeLabel={isAi ? "AI 프로젝트" : "내 자료"}
+        />
       </div>
 
       <form className="flex gap-2">
@@ -39,25 +59,25 @@ export default async function HomePage({
           name="q"
           defaultValue={q ?? ""}
           placeholder="이름·학번 검색"
-          className="flex-1 rounded-xl bg-gray-800 px-4 py-2 text-sm outline-none ring-1 ring-gray-700 focus:ring-indigo-500"
+          className="min-h-11 flex-1 rounded-xl bg-gray-100 dark:bg-gray-800 px-4 text-sm outline-none ring-1 ring-gray-300 dark:ring-gray-700 focus:ring-2 focus:ring-indigo-500"
         />
-        <button className="rounded-xl bg-gray-700 px-4 text-sm hover:bg-gray-600">검색</button>
+        <button className="min-h-11 rounded-xl bg-gray-200 dark:bg-gray-700 px-5 text-sm font-medium hover:bg-gray-300 dark:hover:bg-gray-600">검색</button>
       </form>
 
       {/* 색상 범례 */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-400">
-        <span className="text-gray-500">색상 =</span>
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
+        <span className="text-gray-600 dark:text-gray-400">색상 =</span>
         {shownTypes.map((t) => (
           <span key={t} className="flex items-center gap-1.5">
             <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: PostTypeColors[t] }} />
             {PostTypeLabels[t]}
           </span>
         ))}
-        <span className="text-gray-600">· 카드를 누르면 그 학생의 자료를 탭으로 둘러볼 수 있어요</span>
+        <span className="text-gray-600 dark:text-gray-400">· 카드를 누르면 그 학생의 자료를 탭으로 둘러볼 수 있어요</span>
       </div>
 
       {students.length === 0 ? (
-        <p className="py-20 text-center text-gray-500">
+        <p className="py-20 text-center text-gray-600 dark:text-gray-400">
           {isAi ? "아직 AI 프로젝트를 올린 학생이 없습니다." : "아직 올린 학생이 없습니다."}
         </p>
       ) : (

@@ -40,7 +40,7 @@ function NavLinks() {
   const active = activeKey(pathname, type);
 
   return (
-    <nav className="relative flex items-center gap-4 pb-1 text-sm text-gray-300">
+    <nav className="relative flex items-center gap-4 pb-1 text-sm text-gray-700 dark:text-gray-300">
       {ITEMS.map((item) => (
         <Link
           key={item.key}
@@ -48,8 +48,8 @@ function NavLinks() {
           ref={(el) => {
             linkRefs.current[item.key] = el;
           }}
-          className={`transition-colors hover:text-white ${
-            active === item.key ? "text-white" : ""
+          className={`inline-flex min-h-11 items-center transition-colors hover:text-gray-900 dark:hover:text-gray-50 ${
+            active === item.key ? "text-gray-900 dark:text-gray-50" : ""
           }`}
         >
           {item.label}
@@ -59,7 +59,7 @@ function NavLinks() {
       {/* 현재 페이지로 슬라이드되는 밑줄 인디케이터 */}
       <span
         aria-hidden
-        className="pointer-events-none absolute bottom-0 h-0.5 rounded-full bg-indigo-400 transition-all duration-300 ease-out"
+        className="pointer-events-none absolute bottom-0 h-0.5 rounded-full bg-indigo-600 transition-all duration-300 ease-out"
         style={{
           left: indicator.left,
           width: indicator.width,
