@@ -49,48 +49,33 @@ export async function POST(req: Request) {
     }
   }
 
-  try {
-    // 학생당 카테고리별 1개 슬롯: 이미 있으면 교체(기존 파일 정리)
-    const existing = await prisma.post.findUnique({
-      where: { authorId_type: { authorId: session.user.id, type: parsed.data.type } },
-    });
-    if (existing && hasFile) {
-      await deleteUpload(existing.filePath);
-      await deleteUpload(existing.previewPath);
-    }
-
-    const data = {
-      description: parsed.data.description || null,
-      linkUrl: parsed.data.linkUrl || null,
-      deployUrl: parsed.data.deployUrl || null,
-      ...(hasFile ? { filePath, fileName, previewPath } : {}),
-    };
-
-    const post = await prisma.post.upsert({
-      where: { authorId_type: { authorId: session.user.id, type: parsed.data.type } },
-      update: data,
-      create: {
-        type: parsed.data.type,
-        authorId: session.user.id,
-        filePath,
-        fileName,
-        previewPath,
-        ...data,
-      },
-    });
-    return NextResponse.json({ ok: true, id: post.id });
-  } catch (e) {
-    // TODO(디버그): 원인 파악 후 원복 — 실제 오류를 응답에 노출한다
-    const err = e as { message?: string; code?: string; meta?: unknown };
-    console.error("POST /api/posts 실패:", err);
-    return NextResponse.json(
-      {
-        error: "server_error",
-        message: err?.message ?? String(e),
-        code: err?.code ?? null,
-        meta: err?.meta ?? null,
-      },
-      { status: 500 },
-    );
+  // 학생당 카테고리별 1개 슬롯: 이미 있으면 교체(기존 파일 정리)
+  const existing = await prisma.post.findUnique({
+    where: { authorId_type: { authorId: session.user.id, type: parsed.data.type } },
+  });
+  if (existing && hasFile) {
+    await deleteUpload(existing.filePath);
+    await deleteUpload(existing.previewPath);
   }
+
+  const data = {
+    description: parsed.data.description || null,
+    linkUrl: parsed.data.linkUrl || null,
+    deployUrl: parsed.data.deployUrl || null,
+    ...(hasFile ? { filePath, fileName, previewPath } : {}),
+  };
+
+  const post = await prisma.post.upsert({
+    where: { authorId_type: { authorId: session.user.id, type: parsed.data.type } },
+    update: data,
+    create: {
+      type: parsed.data.type,
+      authorId: session.user.id,
+      filePath,
+      fileName,
+      previewPath,
+      ...data,
+    },
+  });
+  return NextResponse.json({ ok: true, id: post.id });
 }
