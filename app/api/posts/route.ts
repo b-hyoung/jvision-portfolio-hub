@@ -49,33 +49,42 @@ export async function POST(req: Request) {
     }
   }
 
-  // 학생당 카테고리별 1개 슬롯: 이미 있으면 교체(기존 파일 정리)
-  const existing = await prisma.post.findUnique({
-    where: { authorId_type: { authorId: session.user.id, type: parsed.data.type } },
-  });
-  if (existing && hasFile) {
-    await deleteUpload(existing.filePath);
-    await deleteUpload(existing.previewPath);
+  try {
+    // 학생당 카테고리별 1개 슬롯: 이미 있으면 교체(기존 파일 정리)
+    const existing = await prisma.post.findUnique({
+      where: { authorId_type: { authorId: session.user.id, type: parsed.data.type } },
+    });
+    if (existing && hasFile) {
+      await deleteUpload(existing.filePath);
+      await deleteUpload(existing.previewPath);
+    }
+
+    const data = {
+      description: parsed.data.description || null,
+      linkUrl: parsed.data.linkUrl || null,
+      deployUrl: parsed.data.deployUrl || null,
+      ...(hasFile ? { filePath, fileName, previewPath } : {}),
+    };
+
+    const post = await prisma.post.upsert({
+      where: { authorId_type: { authorId: session.user.id, type: parsed.data.type } },
+      update: data,
+      create: {
+        type: parsed.data.type,
+        authorId: session.user.id,
+        filePath,
+        fileName,
+        previewPath,
+        ...data,
+      },
+    });
+    return NextResponse.json({ ok: true, id: post.id });
+  } catch (e) {
+    // TODO(임시 디버그): 원인 확인 후 되돌릴 것
+    console.error("POST /api/posts 실패:", e);
+    return NextResponse.json(
+      { error: `[debug] ${(e as Error).name}: ${(e as Error).message}` },
+      { status: 500 }
+    );
   }
-
-  const data = {
-    description: parsed.data.description || null,
-    linkUrl: parsed.data.linkUrl || null,
-    deployUrl: parsed.data.deployUrl || null,
-    ...(hasFile ? { filePath, fileName, previewPath } : {}),
-  };
-
-  const post = await prisma.post.upsert({
-    where: { authorId_type: { authorId: session.user.id, type: parsed.data.type } },
-    update: data,
-    create: {
-      type: parsed.data.type,
-      authorId: session.user.id,
-      filePath,
-      fileName,
-      previewPath,
-      ...data,
-    },
-  });
-  return NextResponse.json({ ok: true, id: post.id });
 }
