@@ -27,6 +27,21 @@ export async function deleteObject(key: string | null) {
   await admin().storage.from(BUCKET).remove([key]);
 }
 
+/**
+ * 클라이언트가 파일을 Supabase에 직접 업로드할 수 있는 서명 URL 생성.
+ * (Vercel 서버리스 4.5MB 본문 제한을 우회 — 브라우저→Supabase 직행)
+ */
+export async function createSignedUpload(
+  key: string
+): Promise<{ signedUrl: string; path: string; token: string }> {
+  const { data, error } = await admin()
+    .storage.from(BUCKET)
+    .createSignedUploadUrl(key);
+  if (error || !data)
+    throw new Error(`서명 업로드 URL 생성 실패: ${error?.message ?? "unknown"}`);
+  return { signedUrl: data.signedUrl, path: data.path, token: data.token };
+}
+
 /** 비공개 객체를 일정 시간 동안 볼 수 있는 서명 URL 생성 */
 export async function signedUrl(key: string, expiresInSec = 3600): Promise<string | null> {
   const { data, error } = await admin()

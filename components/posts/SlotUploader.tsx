@@ -52,24 +52,64 @@ export default function SlotUploader({
     e.preventDefault();
     setError(null);
     setLoading(true);
+    try {
+      let filePath: string | null = null;
+      let uploadedName: string | null = null;
 
-    const fd = new FormData();
-    fd.set("type", type);
-    fd.set("description", description ?? "");
-    fd.set("linkUrl", linkUrl ?? "");
-    fd.set("deployUrl", isAiProject ? deployUrl ?? "" : "");
-    if (file) fd.set("file", file);
+      if (file) {
+        if (file.size > 20 * 1024 * 1024)
+          throw new Error("파일 크기는 20MB를 넘을 수 없습니다.");
 
-    const res = await fetch("/api/posts", { method: "POST", body: fd });
-    setLoading(false);
-    if (!res.ok) {
-      const d = await res.json().catch(() => ({}));
-      setError(d.error ?? "저장에 실패했습니다.");
-      return;
+        // 1) 서명 업로드 URL 발급 (작은 요청)
+        const signRes = await fetch("/api/uploads", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileName: file.name, size: file.size }),
+        });
+        if (!signRes.ok) {
+          const d = await signRes.json().catch(() => ({}));
+          throw new Error(d.error ?? "업로드 준비에 실패했습니다.");
+        }
+        const { signedUrl, path } = await signRes.json();
+
+        // 2) Supabase로 파일 직접 PUT (Vercel 함수 우회 → 20MB까지 가능)
+        const putRes = await fetch(signedUrl, {
+          method: "PUT",
+          headers: { "Content-Type": file.type || "application/octet-stream" },
+          body: file,
+        });
+        if (!putRes.ok) throw new Error("파일 업로드에 실패했습니다.");
+
+        filePath = path;
+        uploadedName = file.name;
+      }
+
+      // 3) 메타데이터만 저장 (작은 JSON)
+      const res = await fetch("/api/posts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type,
+          description: description ?? "",
+          linkUrl: linkUrl ?? "",
+          deployUrl: isAiProject ? deployUrl ?? "" : "",
+          filePath,
+          fileName: uploadedName,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        throw new Error(d.error ?? "저장에 실패했습니다.");
+      }
+
+      setOpen(false);
+      setFile(null);
+      router.refresh();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
     }
-    setOpen(false);
-    setFile(null);
-    router.refresh();
   }
 
   async function onDelete() {

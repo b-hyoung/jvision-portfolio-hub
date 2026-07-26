@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { saveUpload, deleteUpload } from "@/lib/uploads";
+import { deleteUpload, previewPathFor } from "@/lib/uploads";
 import { postInputSchema } from "@/validations/post";
 import { listPosts } from "@/server/posts";
 import { getCurrentUser } from "@/server/current-user";
@@ -20,33 +20,25 @@ export async function POST(req: Request) {
   const me = await getCurrentUser();
   if (!me) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const form = await req.formData();
-  const file = form.get("file");
-  const hasFile = file instanceof File && file.size > 0;
+  // 파일 바이트가 아니라, 클라이언트가 Supabase에 직접 올린 결과 경로를 받는다.
+  const body = await req.json().catch(() => ({}));
+  const filePath =
+    typeof body.filePath === "string" && body.filePath ? body.filePath : null;
+  const fileName =
+    typeof body.fileName === "string" && body.fileName ? body.fileName : null;
+  const hasFile = Boolean(filePath);
 
   const parsed = postInputSchema.safeParse({
-    type: form.get("type"),
-    description: form.get("description") ?? "",
-    linkUrl: form.get("linkUrl") ?? "",
-    deployUrl: form.get("deployUrl") ?? "",
+    type: body.type,
+    description: body.description ?? "",
+    linkUrl: body.linkUrl ?? "",
+    deployUrl: body.deployUrl ?? "",
     hasFile,
   });
   if (!parsed.success)
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
 
-  let filePath: string | null = null;
-  let fileName: string | null = null;
-  let previewPath: string | null = null;
-  if (hasFile) {
-    try {
-      const saved = await saveUpload(file as File);
-      filePath = saved.filePath;
-      fileName = saved.fileName;
-      previewPath = saved.previewPath;
-    } catch (e) {
-      return NextResponse.json({ error: (e as Error).message }, { status: 400 });
-    }
-  }
+  const previewPath = filePath ? previewPathFor(filePath) : null;
 
   try {
     const authorId = me.id;

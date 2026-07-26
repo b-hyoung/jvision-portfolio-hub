@@ -4,10 +4,24 @@ import path from "path";
 import { putObject, deleteObject } from "@/lib/storage";
 import { convertToPdf } from "@/lib/convert";
 
-const ALLOWED_EXT = new Set([".pdf", ".hwp", ".hwpx", ".pptx", ".ppt"]);
-const MAX_BYTES = 20 * 1024 * 1024; // 20MB
+export const ALLOWED_EXT = new Set([".pdf", ".hwp", ".hwpx", ".pptx", ".ppt"]);
+export const MAX_BYTES = 20 * 1024 * 1024; // 20MB
 // HWP→PDF 변환 사용 여부 (LibreOffice 설치된 서버에서만). 기본 비활성.
 const CONVERT = process.env.ENABLE_HWP_CONVERT === "1";
+
+/** 파일명·크기 검증 (허용 확장자 반환, 위반 시 throw) — 서명 업로드 발급 시 사용 */
+export function validateUploadMeta(fileName: string, size: number): string {
+  const ext = path.extname(fileName).toLowerCase();
+  if (!ALLOWED_EXT.has(ext))
+    throw new Error("PDF · HWP · PPTX 파일만 업로드할 수 있습니다.");
+  if (size > MAX_BYTES) throw new Error("파일 크기는 20MB를 넘을 수 없습니다.");
+  return ext;
+}
+
+/** 직접 업로드된 객체의 미리보기 경로: PDF는 그 자체, 그 외는 없음(변환 불가 환경) */
+export function previewPathFor(key: string): string | null {
+  return path.extname(key).toLowerCase() === ".pdf" ? key : null;
+}
 
 export type SavedUpload = {
   filePath: string; // 스토리지 객체 키
