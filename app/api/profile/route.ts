@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { profileSchema } from "@/validations/post";
+import { getCurrentUser } from "@/server/current-user";
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const me = await getCurrentUser();
+  if (!me) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const body = await req.json();
   const parsed = profileSchema.safeParse(body);
@@ -16,11 +15,10 @@ export async function POST(req: Request) {
       { status: 400 }
     );
 
-  // 세션 id가 아니라 안정적인 학번으로 확정(오래된 세션/DB 교체 대비)
-  const user = await prisma.user.upsert({
-    where: { studentNo: session.user.studentNo },
-    update: { name: parsed.data.name },
-    create: { studentNo: session.user.studentNo, name: parsed.data.name },
+  // me.id는 getCurrentUser가 학번으로 확정한 유효한 id
+  const user = await prisma.user.update({
+    where: { id: me.id },
+    data: { name: parsed.data.name },
   });
   return NextResponse.json({ ok: true, name: user.name });
 }

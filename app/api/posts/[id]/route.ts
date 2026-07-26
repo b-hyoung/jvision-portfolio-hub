@@ -1,10 +1,8 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { deleteUpload, saveUpload } from "@/lib/uploads";
-import { postInputSchema } from "@/validations/post";
+import { deleteUpload } from "@/lib/uploads";
 import { getPost } from "@/server/posts";
+import { getCurrentUser } from "@/server/current-user";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -16,59 +14,60 @@ export async function GET(_req: Request, { params }: Ctx) {
 }
 
 async function requireOwner(id: string) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) return { error: "unauthorized" as const, status: 401 };
+  const me = await getCurrentUser();
+  if (!me) return { error: "unauthorized" as const, status: 401 };
   const post = await prisma.post.findUnique({ where: { id } });
   if (!post) return { error: "not found" as const, status: 404 };
-  if (post.authorId !== session.user.id)
+  // 소유자 판정은 세션 id(옛 DB 값일 수 있음)가 아니라 전역 getCurrentUser 기준
+  if (post.authorId !== me.id)
     return { error: "forbidden" as const, status: 403 };
   return { post };
 }
 
+/**
+ * 구분별 부분 삭제 — 파일 / 링크 / 배포 링크를 각각 지운다.
+ * body: { clear: "file" | "link" | "deploy" }
+ * 지운 뒤 남는 콘텐츠(파일·링크·배포)가 하나도 없으면 슬롯(게시물)을 통째로 삭제한다.
+ */
 export async function PATCH(req: Request, { params }: Ctx) {
   const { id } = await params;
   const guard = await requireOwner(id);
   if ("error" in guard) return NextResponse.json({ error: guard.error }, { status: guard.status });
 
-  const form = await req.formData();
-  const file = form.get("file");
-  const newFile = file instanceof File && file.size > 0;
-  const hasFile = newFile || Boolean(guard.post.filePath);
+  const body = await req.json().catch(() => ({}));
+  const clear = body?.clear as "file" | "link" | "deploy" | undefined;
+  if (clear !== "file" && clear !== "link" && clear !== "deploy")
+    return NextResponse.json(
+      { error: "clear는 file | link | deploy 중 하나여야 합니다." },
+      { status: 400 }
+    );
 
-  const parsed = postInputSchema.safeParse({
-    type: form.get("type"),
-    description: form.get("description") ?? "",
-    linkUrl: form.get("linkUrl") ?? "",
-    hasFile,
-  });
-  if (!parsed.success)
-    return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
-
-  let { filePath, fileName, previewPath } = guard.post;
-  if (newFile) {
-    try {
-      await deleteUpload(guard.post.filePath);
-      await deleteUpload(guard.post.previewPath);
-      const saved = await saveUpload(file as File);
-      filePath = saved.filePath;
-      fileName = saved.fileName;
-      previewPath = saved.previewPath;
-    } catch (e) {
-      return NextResponse.json({ error: (e as Error).message }, { status: 400 });
-    }
+  const post = guard.post;
+  const data: Record<string, null> = {};
+  if (clear === "file") {
+    await deleteUpload(post.filePath);
+    await deleteUpload(post.previewPath);
+    data.filePath = null;
+    data.fileName = null;
+    data.previewPath = null;
+  } else if (clear === "link") {
+    data.linkUrl = null;
+  } else {
+    data.deployUrl = null;
   }
 
-  await prisma.post.update({
-    where: { id },
-    data: {
-      // 슬롯 카테고리(type)는 고정
-      description: parsed.data.description || null,
-      linkUrl: parsed.data.linkUrl || null,
-      filePath,
-      fileName,
-      previewPath,
-    },
-  });
+  // 지운 뒤 남는 콘텐츠 판단
+  const remaining = {
+    filePath: clear === "file" ? null : post.filePath,
+    linkUrl: clear === "link" ? null : post.linkUrl,
+    deployUrl: clear === "deploy" ? null : post.deployUrl,
+  };
+  if (!remaining.filePath && !remaining.linkUrl && !remaining.deployUrl) {
+    await prisma.post.delete({ where: { id } });
+    return NextResponse.json({ ok: true, deleted: true });
+  }
+
+  await prisma.post.update({ where: { id }, data });
   return NextResponse.json({ ok: true });
 }
 

@@ -74,10 +74,26 @@ export default function SlotUploader({
 
   async function onDelete() {
     if (!post) return;
-    if (!confirm(`${PostTypeLabels[type]}를 삭제할까요?`)) return;
+    if (!confirm(`${PostTypeLabels[type]} 전체를 삭제할까요?`)) return;
     const res = await fetch(`/api/posts/${post.id}`, { method: "DELETE" });
     if (res.ok) router.refresh();
     else alert("삭제에 실패했습니다.");
+  }
+
+  // 구분별 삭제: 파일 / 링크 / 배포 링크를 각각 제거 (다 비면 서버가 슬롯을 지움)
+  async function onClear(part: "file" | "link" | "deploy", label: string) {
+    if (!post) return;
+    if (!confirm(`${label}을(를) 삭제할까요?`)) return;
+    const res = await fetch(`/api/posts/${post.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clear: part }),
+    });
+    if (res.ok) router.refresh();
+    else {
+      const d = await res.json().catch(() => ({}));
+      alert(d.error ?? "삭제에 실패했습니다.");
+    }
   }
 
   return (
@@ -142,6 +158,52 @@ export default function SlotUploader({
           </div>
         )}
       </div>
+
+      {/* 올린 항목 — 파일/링크/배포를 각각 × 로 삭제 (파일만 내리고 링크만 남기기 등) */}
+      {filled && (post!.fileName || post!.linkUrl || post!.deployUrl) && (
+        <div className="flex flex-wrap items-center gap-2 border-t border-gray-200 dark:border-gray-800 px-4 py-3 sm:px-5">
+          <span className="text-xs text-gray-500 dark:text-gray-400">올린 항목</span>
+          {post!.fileName && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-1 text-xs">
+              <span className="max-w-[40vw] truncate sm:max-w-xs">📎 {post!.fileName}</span>
+              <button
+                type="button"
+                onClick={() => onClear("file", "파일")}
+                aria-label="파일 삭제"
+                className="ml-0.5 rounded-full px-1.5 py-0.5 text-gray-500 hover:text-red-600 dark:hover:text-red-400"
+              >
+                ×
+              </button>
+            </span>
+          )}
+          {post!.linkUrl && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-1 text-xs">
+              🔗 링크
+              <button
+                type="button"
+                onClick={() => onClear("link", "링크")}
+                aria-label="링크 삭제"
+                className="ml-0.5 rounded-full px-1.5 py-0.5 text-gray-500 hover:text-red-600 dark:hover:text-red-400"
+              >
+                ×
+              </button>
+            </span>
+          )}
+          {post!.deployUrl && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 dark:bg-gray-800 px-3 py-1 text-xs">
+              🚀 배포
+              <button
+                type="button"
+                onClick={() => onClear("deploy", "배포 링크")}
+                aria-label="배포 링크 삭제"
+                className="ml-0.5 rounded-full px-1.5 py-0.5 text-gray-500 hover:text-red-600 dark:hover:text-red-400"
+              >
+                ×
+              </button>
+            </span>
+          )}
+        </div>
+      )}
 
       {/* 아코디언 본문 — grid-rows 로 부드럽게 열고닫기 */}
       <div

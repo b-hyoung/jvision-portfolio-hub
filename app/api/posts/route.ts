@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { saveUpload, deleteUpload } from "@/lib/uploads";
 import { postInputSchema } from "@/validations/post";
 import { listPosts } from "@/server/posts";
+import { getCurrentUser } from "@/server/current-user";
 import { PostType } from "@/constants/enums";
 
 export async function GET(req: Request) {
@@ -18,8 +17,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  const me = await getCurrentUser();
+  if (!me) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const form = await req.formData();
   const file = form.get("file");
@@ -50,14 +49,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    // 세션(JWT)의 user.id가 DB 교체 등으로 무효일 수 있으므로,
-    // 안정적인 학번으로 실제 User를 확정(없으면 생성)해 authorId로 사용한다.
-    const dbUser = await prisma.user.upsert({
-      where: { studentNo: session.user.studentNo },
-      update: {},
-      create: { studentNo: session.user.studentNo },
-    });
-    const authorId = dbUser.id;
+    const authorId = me.id;
 
     // 학생당 카테고리별 1개 슬롯: 이미 있으면 교체(기존 파일 정리)
     const existing = await prisma.post.findUnique({
