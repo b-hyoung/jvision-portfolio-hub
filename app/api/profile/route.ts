@@ -16,9 +16,11 @@ export async function POST(req: Request) {
       { status: 400 }
     );
 
-  const user = await prisma.user.update({
-    where: { id: session.user.id },
-    data: { name: parsed.data.name },
+  // 세션 id가 아니라 안정적인 학번으로 확정(오래된 세션/DB 교체 대비)
+  const user = await prisma.user.upsert({
+    where: { studentNo: session.user.studentNo },
+    update: { name: parsed.data.name },
+    create: { studentNo: session.user.studentNo, name: parsed.data.name },
   });
   return NextResponse.json({ ok: true, name: user.name });
 }

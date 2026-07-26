@@ -1,12 +1,21 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth";
+import { prisma } from "@/lib/prisma";
 
 /**
- * 세션에서 사용자 정보를 가져온다(id·학번·이름).
- * 토큰에 이미 들어있어 DB 조회 없이 반환 → 페이지 가드가 빠르다.
+ * 세션의 학번으로 실제 DB User를 확정해서 반환한다(없으면 생성).
+ * JWT의 user.id가 옛 DB 값으로 남아 있어도(예: DB 교체) 항상 현재 DB의
+ * 올바른 id를 돌려주므로, 저장/조회가 같은 User를 바라보게 된다.
  */
 export async function getSessionUser() {
   const session = await getServerSession(authOptions);
-  if (!session?.user) return null;
-  return session.user;
+  const studentNo = session?.user?.studentNo;
+  if (!studentNo) return null;
+  const user = await prisma.user.upsert({
+    where: { studentNo },
+    update: {},
+    create: { studentNo },
+    select: { id: true, studentNo: true, name: true },
+  });
+  return user;
 }
